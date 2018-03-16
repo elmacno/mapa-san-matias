@@ -1,17 +1,19 @@
-<mat-toolbar color="primary">
-  <span>San Matias Navigator</span>
-</mat-toolbar>
-<mat-sidenav-container>
-  <mat-sidenav>
-    <span>SideNav</span>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <mat-grid-list cols="1">
-      <mat-grid-tile>
-        <mat-grid-tile-header>Next maneuver</mat-grid-tile-header>
-        <app-map></app-map>
-        <mat-grid-tile-footer>Next maneuver</mat-grid-tile-footer>
-      </mat-grid-tile>
-    </mat-grid-list>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+<mat-drawer-container>
+  <mat-drawer [opened]="isOpen">
+    <img src="assets/logo.png">
+    <mat-divider></mat-divider>
+    <mat-nav-list>
+      <mat-list-item><a href="#">Inicio</a></mat-list-item>
+      <mat-list-item><a href="/navigation/437">Mapa</a></mat-list-item>
+    </mat-nav-list>
+  </mat-drawer>
+  <mat-drawer-content>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="toggleSidemenu()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>San Matias Navigator</span>
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>

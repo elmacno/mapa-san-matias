@@ -20,6 +20,9 @@ export class MapComponent implements OnInit {
   constructor(private mapbox: MapboxService) { }
 
   ngOnInit() {
+  }
+
+  ngAfterViewInit() {
     mapboxgl.accessToken = environment.mapbox.accessToken;
     this.initMap();
   }
