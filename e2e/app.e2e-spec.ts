@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('san-matias-navigator App', () => {
+describe('mapa-san-matias App', () => {
   let page: AppPage;
 
   beforeEach(() => {
