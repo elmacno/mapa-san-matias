@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Routes } from '@angular/router';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { routes } from './app.routes';
 
@@ -13,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
@@ -33,6 +35,8 @@ import { LocationService } from './location.service';
   ],
   imports: [
     BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
     HttpClientModule,
     MatToolbarModule,
     MatSidenavModule,
@@ -42,6 +46,7 @@ import { LocationService } from './location.service';
     MatCardModule,
     MatDividerModule,
     MatListModule,
+    MatInputModule,
     BrowserAnimationsModule,
     RouterModule.forRoot(routes)
   ],
@@ -54,6 +59,7 @@ import { LocationService } from './location.service';
     MatCardModule,
     MatDividerModule,
     MatListModule,
+    MatInputModule,
     BrowserAnimationsModule
   ],
   providers: [

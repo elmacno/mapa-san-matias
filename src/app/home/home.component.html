@@ -1,3 +1,17 @@
-<p>
-  home works!
-</p>
+<img src="assets/logo.png">
+<form (ngSubmit)="onSubmit()">
+  <mat-form-field>
+    <input matInput placeholder="Nro. de Lote" [formControl]="lotFormControl"
+           [errorStateMatcher]="matcher">
+    <mat-hint>Numero de Lote</mat-hint>
+    <mat-error *ngIf="lotFormControl.hasError('lotNo') && !lotFormControl.hasError('required')">
+      Por favor ingrese un número de lote valido
+    </mat-error>
+    <mat-error *ngIf="lotFormControl.hasError('required')">
+      El número de lote es <strong>necesario</strong>
+    </mat-error>
+  </mat-form-field>
+  <button mat-raised-button type="submit" color="primary">
+    Ir
+  </button>
+</form>
