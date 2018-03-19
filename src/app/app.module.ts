@@ -21,6 +21,7 @@ import { NavigationComponent } from './navigation/navigation.component';
 import { HomeComponent } from './home/home.component';
 
 import { MapboxService } from './mapbox.service';
+import { LocationService } from './location.service';
 
 
 @NgModule({
@@ -56,7 +57,8 @@ import { MapboxService } from './mapbox.service';
     BrowserAnimationsModule
   ],
   providers: [
-    MapboxService
+    MapboxService,
+    LocationService
   ],
   bootstrap: [AppComponent]
 })

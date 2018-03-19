@@ -1,7 +1,12 @@
 <mat-card>
-  Maneuver display
+  Next maneuver
 </mat-card>
-<app-map></app-map>
+<div class="map-container">
+  <app-map [lot-no]="lotNo"></app-map>
+  <button mat-fab color="primary" *ngIf="isPreview" (click)="onGo()">
+    <mat-icon>directions</mat-icon>
+  </button>
+</div>
 <mat-card>
   Summary display
 </mat-card>

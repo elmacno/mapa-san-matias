@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import * as polyline from '@mapbox/polyline';
 
 import { environment } from '../../environments/environment';
 import { MapboxService, IPoint } from '../mapbox.service';
+import { LocationService } from '../location.service';
 
 @Component({
   selector: 'app-map',
@@ -12,71 +13,23 @@ import { MapboxService, IPoint } from '../mapbox.service';
 })
 export class MapComponent implements OnInit {
 
+  @Input('lot-no') lotNo: number;
   map: mapboxgl.Map;
   container: string = 'map';
   coords: {old: IPoint, new: IPoint} = { old: null, new: {latitude: -34.36074, longitude: -58.75139} };
   style: string = 'mapbox://styles/mapbox/streets-v10';
+  currentRoute: any;
 
-  constructor(private mapbox: MapboxService) { }
+  constructor(private mapbox: MapboxService, private location: LocationService) { }
 
   ngOnInit() {
   }
 
   ngAfterViewInit() {
-    mapboxgl.accessToken = environment.mapbox.accessToken;
-    this.initMap();
-  }
-
-  initMap() {
-    this.buildMap();
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        this.coords.new = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-        this.map.flyTo({
-          center: [this.coords.new.longitude, this.coords.new.latitude]
-        });
-        this.mapbox
-          .getDirections(this.coords.new, {latitude: -34.35135, longitude: -58.76068})
-          .subscribe((data: mapboxgl.Route) => {
-            console.log(data);
-            data.routes[0].legs[0].steps.forEach((step, index) => {
-              this.map.addLayer({
-                id: `route-step-${index}`,
-                type: 'line',
-                source: {
-                  type: 'geojson',
-                  data: {
-                    type: 'Feature',
-                    properties: {},
-                    geometry: polyline.toGeoJSON(step.geometry)
-                  }
-                },
-                layout: {
-                  'line-join': 'round',
-                  'line-cap': 'round'
-                },
-                paint: {
-                  'line-color': this.getRandomColor(),
-                  'line-width': 8
-                }
-              });
-              let marker = new mapboxgl.Marker().setLngLat(step.maneuver.location).addTo(this.map);
-            });
-          });
-      });
-      navigator.geolocation.watchPosition((position) => {
-        this.coords.old = this.coords.new;
-        this.coords.new = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-        this.map.setCenter([this.coords.new.longitude, this.coords.new.latitude]);
-        this.map.setBearing(this.calculateBearing(this.coords.old, this.coords.new));
-      });
-    }
+    this.location.ready()
+      .subscribe(() => {
+        this.buildMap();
+      })
   }
 
   buildMap() {
@@ -84,16 +37,48 @@ export class MapComponent implements OnInit {
       container: this.container,
       style: this.style,
       zoom: 16,
-      pitch: 60,
-      center: [this.coords.new.longitude, this.coords.new.latitude]
+      center: [this.location.getCurrentPosition().longitude, this.location.getCurrentPosition().latitude]
     });
   }
 
-  calculateBearing(start: IPoint, end: IPoint) {
-    let y = Math.sin(start.longitude-end.longitude) * Math.cos(end.latitude);
-    let x = Math.cos(end.latitude)*Math.sin(end.latitude) -
-            Math.sin(start.latitude)*Math.cos(end.latitude)*Math.cos(end.longitude-start.longitude);
-    return Math.atan2(y, x) * 180 / Math.PI;
+  addDirectionsLayer(path: any, fitView: boolean) {
+    this.map.addLayer({
+      id: 'route',
+      type: 'line',
+      source: {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: path
+        }
+      },
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      paint: {
+        'line-color': this.getRandomColor(),
+        'line-width': 8
+      }
+    });
+    let min: IPoint;
+    let max: IPoint;
+    path.coordinates.forEach((coords) => {
+      if (!min) min = {longitude: coords[0], latitude: coords[1]}
+      if (!max) max = {longitude: coords[0], latitude: coords[1]}
+      if (coords[0] < min.longitude) min.longitude = coords[0];
+      if (coords[1] < min.latitude) min.latitude = coords[1];
+      if (coords[0] > max.longitude) max.longitude = coords[0];
+      if (coords[1] > max.latitude) max.latitude = coords[1];
+    });
+
+    this.map.fitBounds([
+      [min.longitude, min.latitude],
+      [max.longitude, max.latitude]
+    ], {
+      padding: 20
+    })
   }
 
   getRandomColor() {
@@ -103,5 +88,20 @@ export class MapComponent implements OnInit {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
+  }
+
+  setDriveMode(destination: IPoint) {
+    this.map.easeTo({pitch: 60});
+    let currentPositionMarker = new mapboxgl.Marker().setLngLat([this.location.getCurrentPosition().longitude, this.location.getCurrentPosition().latitude]).addTo(this.map);
+    this.location.watchPosition((position) => {
+      currentPositionMarker.setLngLat([position.coords.longitude, position.coords.latitude]);
+      this.map.easeTo({
+        center: [position.coords.longitude, position.coords.latitude],
+        bearing: this.location.getCurrentBearing()
+      });
+    });
+    new mapboxgl.Marker()
+        .setLngLat([destination.longitude, destination.latitude])
+      .addTo(this.map);
   }
 }

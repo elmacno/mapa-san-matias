@@ -2,7 +2,7 @@ mat-drawer-container {
   height: 100%;
 
   mat-drawer {
-    width: 60%;
+    width: 80%;
     max-width: 400px;
 
     display: flex;
@@ -10,6 +10,11 @@ mat-drawer-container {
 
     img {
       width: 100%;
+    }
+
+    .mat-list-icon {
+      color: rgba(0, 0, 0, 0.54);
+      margin-right: 15px;
     }
   }
 
