@@ -19,7 +19,7 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 export class HomeComponent implements OnInit {
   lotFormControl = new FormControl('', [
     Validators.required,
-    Validators.max(1261),
+    Validators.max(1268),
     Validators.min(1)
   ]);
 

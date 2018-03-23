@@ -15,6 +15,8 @@ export class MapComponent implements OnInit {
 
   @Input('lot-no') lotNo: number;
   map: mapboxgl.Map;
+  currentPositionMarker: mapboxgl.Marker;
+  destinationMarker: mapboxgl.Marker;
   container: string = 'map';
   coords: {old: IPoint, new: IPoint} = { old: null, new: {latitude: -34.36074, longitude: -58.75139} };
   style: string = 'mapbox://styles/mapbox/streets-v10';
@@ -58,7 +60,7 @@ export class MapComponent implements OnInit {
         'line-cap': 'round'
       },
       paint: {
-        'line-color': this.getRandomColor(),
+        'line-color': '#888',
         'line-width': 8
       }
     });
@@ -73,6 +75,20 @@ export class MapComponent implements OnInit {
       if (coords[1] > max.latitude) max.latitude = coords[1];
     });
 
+    if (this.currentPositionMarker) {
+      delete this.currentPositionMarker;
+    }
+    this.currentPositionMarker = new mapboxgl.Marker(this.createCurrentPositionElement())
+      .setLngLat(path.coordinates[0])
+      .addTo(this.map);
+    if (this.destinationMarker) {
+      delete this.destinationMarker;
+    }
+    this.destinationMarker = new mapboxgl.Marker(this.createDestinationElement())
+      .setLngLat(path.coordinates[path.coordinates.length - 1])
+      .setOffset([0, -25])
+      .addTo(this.map);
+
     this.map.fitBounds([
       [min.longitude, min.latitude],
       [max.longitude, max.latitude]
@@ -81,27 +97,39 @@ export class MapComponent implements OnInit {
     })
   }
 
-  getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+  setDriveMode(destination: IPoint) {
+    this.currentPositionMarker.getElement().style.backgroundImage = 'url(/assets/arrow_driving.png)';
+    this.currentPositionMarker.getElement().style.height = '20px';
+    this.updateCamera(this.location.getCurrentPosition());
+    this.location.watchPosition((position) => {
+      this.currentPositionMarker.setLngLat([position.coords.longitude, position.coords.latitude]);
+      this.updateCamera(position.coords)
+    });
+
   }
 
-  setDriveMode(destination: IPoint) {
-    this.map.easeTo({pitch: 60});
-    let currentPositionMarker = new mapboxgl.Marker().setLngLat([this.location.getCurrentPosition().longitude, this.location.getCurrentPosition().latitude]).addTo(this.map);
-    this.location.watchPosition((position) => {
-      currentPositionMarker.setLngLat([position.coords.longitude, position.coords.latitude]);
-      this.map.easeTo({
-        center: [position.coords.longitude, position.coords.latitude],
-        bearing: this.location.getCurrentBearing()
-      });
+  createCurrentPositionElement() {
+    let element = document.createElement('div');
+    element.style.backgroundImage = 'url(/assets/arrow.png)';
+    element.style.width = '32px';
+    element.style.height = '40px';
+    return element;
+  }
+
+  createDestinationElement() {
+    let element = document.createElement('div');
+    element.style.backgroundImage = 'url(/assets/finish.png)';
+    element.style.width = '38px';
+    element.style.height = '50px';
+    return element;
+  }
+
+  updateCamera(position) {
+    this.map.easeTo({
+      center: [position.longitude, position.latitude],
+      bearing: this.location.getCurrentBearing(),
+      zoom: 16,
+      pitch: 60
     });
-    new mapboxgl.Marker()
-        .setLngLat([destination.longitude, destination.latitude])
-      .addTo(this.map);
   }
 }

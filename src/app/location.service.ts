@@ -1,4 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { LocationUtility } from 'location-utilities';
 import { IPoint } from './mapbox.service';
 
@@ -10,8 +11,10 @@ export class LocationService {
   watchedPositions: IPoint[];
   positionReachedEmitters: EventEmitter<string>[];
   geolocationReady: EventEmitter<boolean>;
+  lotCoordinates: any;
 
-  constructor() {
+  constructor(private http: HttpClient) {
+    this.http = http;
     this.geolocation = navigator.geolocation;
     this.watchedPositions = [];
     this.positionReachedEmitters = [];
@@ -19,11 +22,16 @@ export class LocationService {
       previous:{latitude: 0, longitude: 0},
       current: {latitude: 0, longitude: 0}
     }
+    this.lotCoordinates = [];
     this.geolocationReady = new EventEmitter<boolean>();
     if (this.geolocation) {
       this.geolocation.getCurrentPosition((position) => {
         this.updateCurrentPosition(position);
-        this.geolocationReady.emit(true)
+        this.http.get('/assets/lot_coordinates.json')
+          .subscribe((data) => {
+            this.lotCoordinates = data;
+            this.geolocationReady.emit(true);
+          });
       });
       this.geolocation.watchPosition((position) => {
         this.updateCurrentPosition(position);
@@ -78,10 +86,7 @@ export class LocationService {
   }
 
   getCoordinates(lotNo: number) {
-    return {
-      latitude: -34.35135,
-      longitude: -58.76068
-    };
+    return this.lotCoordinates[lotNo];
   }
 
   getCurrentPosition(): IPoint {
